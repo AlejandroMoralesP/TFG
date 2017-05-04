@@ -16,6 +16,7 @@ import com.massisframework.massis.model.managers.movement.ApproachCallback;
 import com.massisframework.massis.pathfinding.straightedge.FindPathResult.PathFinderErrorReason;
 
 import straightedge.geom.KPolygon;
+import straightedge.geom.path.PathBlockingObstacle;
 
 public class MyHelloHighLevelController extends HighLevelController {
 
@@ -31,16 +32,33 @@ public class MyHelloHighLevelController extends HighLevelController {
 	    this.agent.setProperty("TAGGED", String.valueOf(tagged));
 	}
 	
+	public boolean isDisaster() {
+	    return "true".equals(this.agent.getProperty("DISASTER"));
+	}
+	public void setDisaster(boolean disaster) {
+	    this.agent.setProperty("DISASTER", String.valueOf(disaster));
+	}
+	
+	public boolean isKnowPlace() {
+	    return "true".equals(this.agent.getProperty("KNOWPLACE"));
+	}
+	public void setKnowPlace(boolean knowplace) {
+	    this.agent.setProperty("KNOWPLACE", String.valueOf(knowplace));
+	}
+	
 	
 	
 	void printAgentsIDsInRange(double range) {
 	    StringBuilder sb = new StringBuilder();
+	    boolean prueba = false;
 
 	    for (LowLevelAgent otherAgent : this.agent.getAgentsInRange(range)) {
 	    final int otherId = otherAgent.getID();
 	    final Location agentLoc = this.agent.getLocation();
 	    final Location otherLoc = otherAgent.getLocation();
 	    final double distance = agentLoc.distance2D(otherLoc);
+	    System.out.println(this.metadata.get("ID"));
+	   
 
 	    sb.append("\tAgent #").append(otherId).append(". distance: ")
 	            .append(distance).append("\n");
@@ -48,6 +66,9 @@ public class MyHelloHighLevelController extends HighLevelController {
 	    if (sb.length() > 0) {
 	    System.out.println("Agent #" + this.agent.getID()+
 	        " has in the range of "+range+" cm:");
+	    if (prueba){
+	    	System.out.println("HOLAAAAAA");
+	    }
 	    System.out.println(sb.toString());
 	    }
 	}
@@ -56,13 +77,22 @@ public class MyHelloHighLevelController extends HighLevelController {
 		super(agent, metadata, resourcesFolder);
 		this.agent.setHighLevelData(this);
 		
-		String taggedStr = metadata.get("TAGGED");
+		String taggedStr = metadata.get("DISASTER");
 
-	    if (taggedStr == null || !"true".equals(metadata.get("TAGGED"))) {
-	        this.setTagged(false);
+	    if (taggedStr == null || !"true".equals(metadata.get("DISASTER"))) {
+	        this.setDisaster(false);
 	    } else {
-	        this.setTagged(true);
-	       }
+	        this.setDisaster(true);
+	    }
+	    
+	    taggedStr = metadata.get("KNOWPLACE");
+	    
+	    if (taggedStr == null || !"true".equals(metadata.get("KNOWPLACE"))) {
+	        this.setKnowPlace(false);
+	    } else {
+	        this.setKnowPlace(true);
+	    }
+	    
 	}
 	
 	private MyHelloHighLevelController getNearestAgent (double range, boolean tagStatus) {
@@ -121,35 +151,43 @@ public class MyHelloHighLevelController extends HighLevelController {
 
 	@Override
 	public void step() {
-
-	    if (this.currentTarget == null) {
-	        /* 1 */ SimRoom currentRoom = this.agent.getRoom();
-	        /* 2 */ this.currentTarget = currentRoom.getRandomLoc();
+		
+		if (this.isKnowPlace()){
+			System.out.println("Conozco el lugar");
+			printAgentsIDsInRange(2000000000);
+		}
+		
+		if (this.currentTarget == null) {
+	       	/* 1 */ SimRoom currentRoom = this.agent.getRoom();
+	       	/* 2 */ this.currentTarget = currentRoom.getRandomLoc();
 	    }
+	    
+		System.out.println(currentTarget);
+	    System.out.println("ES EL CURRENT TARGET");
 
 	    ApproachCallback callback = new ApproachCallback() {
-	        @Override
-	        public void onTargetReached(LowLevelAgent agent) {
-	            // Target has been reached.
-	        	currentTarget = null;
-	        }
+	       	@Override
+	       	public void onTargetReached(LowLevelAgent agent) {
+	           	// Target has been reached.
+	       		currentTarget = null;
+	       	}
 
-	        @Override
-	        public void onSucess(LowLevelAgent agent) {
-	            // Everything ok. The agent has moved a little bit.
-	        }
+	       	@Override
+	       	public void onSucess(LowLevelAgent agent) {
+	           	// Everything ok. The agent has moved a little bit.
+	       	}
 
-	        @Override
-	        public void onPathFinderError(PathFinderErrorReason reason) {
-	            // Error!
-	            Logger.getLogger(MyHelloHighLevelController.class.getName())
-	               .log(Level.SEVERE,
-	               "Error when approaching to {0} Reason: {1}",
-	               new Object[] { currentTarget, reason });
-	        }
-	    };
-
-	    /* 3 */ this.agent.approachTo(this.currentTarget, callback);
+	       	@Override
+	       	public void onPathFinderError(PathFinderErrorReason reason) {
+	           	// Error!
+	           	Logger.getLogger(MyHelloHighLevelController.class.getName())
+	            	.log(Level.SEVERE,
+	           		   "Error when approaching to {0} Reason: {1}",
+	             	new Object[] { currentTarget, reason });
+	       	}
+	   	};
+	
+	   	/* 3 */ this.agent.approachTo(this.currentTarget, callback);
 		/*if (this.isTagged()) {
 	        runAsTagged();
 	    } else {
