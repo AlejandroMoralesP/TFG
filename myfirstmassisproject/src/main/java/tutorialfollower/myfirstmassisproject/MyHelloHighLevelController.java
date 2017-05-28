@@ -17,6 +17,7 @@ import com.massisframework.massis.pathfinding.straightedge.FindPathResult.PathFi
 
 import straightedge.geom.KPolygon;
 import straightedge.geom.path.PathBlockingObstacle;
+import sun.tools.tree.ThisExpression;
 
 public class MyHelloHighLevelController extends HighLevelController {
 
@@ -27,6 +28,7 @@ public class MyHelloHighLevelController extends HighLevelController {
 	private int byExpert=0;
 	private Location disasterLocation = null;
 	public int numberOfFollowers = 0;
+	
 	
 	public boolean isTagged() {
 	    return "true".equals(this.agent.getProperty("TAGGED"));
@@ -70,7 +72,7 @@ public class MyHelloHighLevelController extends HighLevelController {
 	    byExpert = answer;
 	}
 	
-	public Location disasterLocation() {
+	public Location getdisasterLocation() {
 	    return disasterLocation;
 	}
 	public void setDisasterLocation(Location disasterLoc) {
@@ -84,7 +86,7 @@ public class MyHelloHighLevelController extends HighLevelController {
 			if ("true".equals(otherAgent.getProperty("DISASTER"))){
 				disaster = true;
 				if ("false".equals(this.agent.getProperty("EXPERIENCE"))){
-					setDisasterLocation(this.agent.getLocation());
+					setDisasterLocation(otherAgent.getLocation());
 				}
 			}
 		}
@@ -101,7 +103,7 @@ public class MyHelloHighLevelController extends HighLevelController {
 				else {
 					setbyExpert(1);
 					final MyHelloHighLevelController agent = (MyHelloHighLevelController) otherAgent.getHighLevelData();
-					setDisasterLocation(agent.disasterLocation());
+					setDisasterLocation(agent.getdisasterLocation());
 				}
 			}
 		}
@@ -110,11 +112,14 @@ public class MyHelloHighLevelController extends HighLevelController {
 	
 	private void followMeUnexperienced(double range){
 		for (LowLevelAgent otherAgent : this.agent.getAgentsInRange(range)) {
-			if ("true".equals(otherAgent.getProperty("KNOWDISASTER")) && numberOfFollowers < 4){
+			if (numberOfFollowers < 4 && otherAgent.getID() != 57){
 				final MyHelloHighLevelController follower = (MyHelloHighLevelController) otherAgent.getHighLevelData();
-				if ("false".equals(otherAgent.getProperty("EXPERIENCE")) && follower.isFollowingSomeone() == null){
+				if ("false".equals(otherAgent.getProperty("EXPERIENCE")) && follower.isFollowingSomeone() == null && follower.getdisasterLocation() != null){
+					follower.setKnowDisaster(true);
 					follower.setFollowTarget(this.agent);
+					follower.setDisasterLocation(null);
 					numberOfFollowers++;
+					System.out.println("Sigueme");
 				}
 			}
 		}
@@ -122,12 +127,13 @@ public class MyHelloHighLevelController extends HighLevelController {
 	
 	private boolean sigueloael(double range){
 		for (LowLevelAgent otherAgent : this.agent.getAgentsInRange(range)) {
-			if (otherAgent.getID() < 10000){
+			if (otherAgent.getID() != 57){
 				final MyHelloHighLevelController leader = (MyHelloHighLevelController) otherAgent.getHighLevelData();
 				if ("true".equals(otherAgent.getProperty("KNOWDISASTER")) && leader.numberOfFollowers < 3){
-					if ("true".equals(otherAgent.getProperty("EXPERIENCE")) && this.isFollowingSomeone() == null){
+					if ("true".equals(otherAgent.getProperty("EXPERIENCE")) && this.isFollowingSomeone() == null && leader.getdisasterLocation() == null){
 						setFollowTarget(leader.agent);
 						leader.numberOfFollowers++;
+						System.out.println("Sigo al valiente");
 						return true;
 					}
 				}
@@ -170,7 +176,6 @@ public class MyHelloHighLevelController extends HighLevelController {
 		
 	}
 	
-	private boolean stop = false;
 	private Location destino = null;
 	
 	void fuga(){
@@ -195,7 +200,6 @@ public class MyHelloHighLevelController extends HighLevelController {
 			@Override
 			public void onTargetReached(LowLevelAgent agent) {
 				// Target has been reached.
-				System.out.println("SAAAAACABAAAAAAAAAOOOOOOOO");
 			}
 
 			@Override
@@ -216,13 +220,50 @@ public class MyHelloHighLevelController extends HighLevelController {
 
 	}
 	
+	private SimRoom Room;
+	
+	void escaparse(){
+		if (destino == null){
+			Room = this.agent.getRandomRoom();
+			
+			while (Room == this.agent.getRoom()){
+				Room = this.agent.getRandomRoom();
+			}
+			
+			destino = Room.getRandomLoc();
+		}
+		
+		ApproachCallback callback = new ApproachCallback() {
+			@Override
+			public void onTargetReached(LowLevelAgent agent) {
+				// Target has been reached.
+			}
+
+			@Override
+			public void onSucess(LowLevelAgent agent) {
+				// Everything ok. The agent has moved a little bit.
+			}
+
+			@Override
+			public void onPathFinderError(PathFinderErrorReason reason) {
+				// Error!
+				Logger.getLogger(MyHelloHighLevelController.class.getName())
+           			.log(Level.SEVERE,
+           					"Error when approaching to {0} Reason: {1}",
+           					new Object[] { destino, reason });
+			}
+		};
+		/* 3 */ this.agent.approachTo(destino, callback);
+		
+	}
+	
 	void UnexperiencedBehaviour(){
 		if(!isKnowDisaster()){
 			if (this.currentTarget == null) {
 	       		/* 1 */ SimRoom currentRoom = this.agent.getRoom();
 	       		/* 2 */ this.currentTarget = currentRoom.getRandomLoc();
 	    	}
-
+			
 			ApproachCallback callback = new ApproachCallback() {
 				@Override
 				public void onTargetReached(LowLevelAgent agent) {
@@ -234,15 +275,13 @@ public class MyHelloHighLevelController extends HighLevelController {
 				public void onSucess(LowLevelAgent agent) {
 					// Everything ok. The agent has moved a little bit.
 					if(DisasterRange(300)){
-						System.out.print("2222");
-						System.out.println("LOO VEEOOO");
+						System.out.println("Veo el desastre");
 						setKnowDisaster(true);
 						setMethodKnowledged(false);
 					}
 					
-					if(ByExpertRange(300) == 2 || ByExpertRange(300) == 1){
-						System.out.print("3333");
-						System.out.println("AGEEENTEEEE");
+					else if(ByExpertRange(300) == 2 || ByExpertRange(300) == 1){
+						System.out.println("Me entero del desastre por otro");
 						setKnowDisaster(true);
 						setMethodKnowledged(true);
 					}
@@ -264,27 +303,41 @@ public class MyHelloHighLevelController extends HighLevelController {
 			if(isKnowPlace()){
 				if(isMethodKnowledged()){
 					if(isbyExpert() == 2){
-						//Lo sigue
-						
-						
+						//Lo sigue						
+						follow(isFollowingSomeone());
+						sigueloael(300);
 						
 					}
 					else if(isbyExpert() == 1){
 						//Huye y alerta a demas
+						setDisasterLocation(null);
 						fuga();
 					}
 				}
 				else{
 					//Huye y alerta a demas
-					System.out.println("probando");
 					//System.out.println(this.agent.getLocation().getFloor().getDoors().get(1).getLocation());
+					setDisasterLocation(null);
 					fuga();
 				}
 			}
 			else {
 				if(isMethodKnowledged()){
 					//Niega el hecho y sigue igual
-					KeepMoving();
+					if(isbyExpert() == 2){
+						//Lo sigue
+						follow(isFollowingSomeone());
+						sigueloael(300);
+						
+						
+						
+					}
+					else if(isbyExpert() == 1){
+						//Huye y alerta a demas
+						setDisasterLocation(null);
+						escaparse();
+					}
+
 				}
 				else{
 					//Pánico y paralizado
@@ -313,15 +366,13 @@ public class MyHelloHighLevelController extends HighLevelController {
 				public void onSucess(LowLevelAgent agent) {
 					// Everything ok. The agent has moved a little bit.
 					if(DisasterRange(300)){
-						System.out.print("2222");
-						System.out.println("LOO VEEOOO");
+						System.out.println("Veo el desastre");
 						setKnowDisaster(true);
 						setMethodKnowledged(false);
 					}
 					
-					if(ByExpertRange(300) == 2 || ByExpertRange(300) == 1){
-						System.out.print("3333");
-						System.out.println("AGEEENTEEEE");
+					else if(ByExpertRange(300) == 2 || ByExpertRange(300) == 1){
+						System.out.println("Me entero del desastre por otro");
 						setKnowDisaster(true);
 						setMethodKnowledged(true);
 					}
@@ -348,17 +399,31 @@ public class MyHelloHighLevelController extends HighLevelController {
 					}
 					else{
 						//reune a otros agentes en otra sala
+						followMe();
+						if(numberOfFollowers == 3) {
+							escaparse();
+						}
 					}
 				}
 				else if (isbyExpert() == 1){
 					//ir a ver que pasa
-					whatsUp(disasterLocation());
+					if (getdisasterLocation() != null){
+						whatsUp(getdisasterLocation());
+					}
 					if(isKnowPlace()){
 						//busca a otros agentes y va a la sala mas alejada
+						followMe();
+						if(numberOfFollowers == 3) {
+							fuga();
+						}
 						
 					}
 					else{
 						//reune a otros agentes en otra sala
+						followMe();
+						if(numberOfFollowers == 3) {
+							escaparse();
+						}
 					}
 				}
 			}
@@ -367,9 +432,16 @@ public class MyHelloHighLevelController extends HighLevelController {
 					if(isKnowPlace()){
 						//busca a otros agentes y va a la sala mas alejada
 						followMe();
+						if(numberOfFollowers == 3) {
+							fuga();
+						}
 					}
 					else{
 						//reune a otros agentes en otra sala
+						followMe();
+						if(numberOfFollowers == 3) {
+							escaparse();
+						}
 					}
 				}
 			}
@@ -377,7 +449,7 @@ public class MyHelloHighLevelController extends HighLevelController {
 	}
 	
 	private void whatsUp (Location target){
-
+		
 		ApproachCallback callback = new ApproachCallback() {
 			@Override
 			public void onTargetReached(LowLevelAgent agent) {
@@ -389,6 +461,7 @@ public class MyHelloHighLevelController extends HighLevelController {
 				// Everything ok. The agent has moved a little bit.
 				if(DisasterRange(300)){
 					System.out.println("LOO VEEOOO343434");
+					setDisasterLocation(null);
 				}
 			}
 
@@ -431,9 +504,6 @@ public class MyHelloHighLevelController extends HighLevelController {
 	                    		"Error when finding path Reason: {0}", reason);
 	        	}
 	    	});
-		}
-		else if (numberOfFollowers == 3){
-			fuga();
 		}
 	}
 	
@@ -593,7 +663,9 @@ public class MyHelloHighLevelController extends HighLevelController {
 
 	@Override
 	public void step() {
-		//prueba();
+		if(this.agent.getID()==12){
+			
+		}
 		if (this.isExperienced()) {
 	        ExperiencedBehaviour();
 	    } else {
