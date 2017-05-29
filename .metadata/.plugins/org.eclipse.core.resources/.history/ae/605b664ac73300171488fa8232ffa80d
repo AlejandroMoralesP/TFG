@@ -1,0 +1,62 @@
+package tutorialfollower.myfirstmassisproject;
+
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.List;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
+
+import com.massisframework.massis.model.agents.HighLevelController;
+import com.massisframework.massis.model.agents.LowLevelAgent;
+import com.massisframework.massis.model.building.Floor;
+import com.massisframework.massis.model.building.SimRoom;
+import com.massisframework.massis.model.location.Location;
+import com.massisframework.massis.model.managers.movement.ApproachCallback;
+import com.massisframework.massis.pathfinding.straightedge.FindPathResult.PathFinderErrorReason;
+
+import straightedge.geom.KPolygon;
+import straightedge.geom.path.PathBlockingObstacle;
+
+public class ObjectHighLevelController extends HighLevelController {
+
+	private static final long serialVersionUID = 1L;
+	private static final double tag_max_distance = 50;
+	private static final double search_range = 200;
+	private Location currentTarget;
+	
+	public boolean isDisaster() {
+	    return "true".equals(this.agent.getProperty("DISASTER"));
+	}
+	public void setDisaster(boolean disaster) {
+	    this.agent.setProperty("DISASTER", String.valueOf(disaster));
+	}
+	
+	public ObjectHighLevelController(LowLevelAgent agent, Map<String, String> metadata, String resourcesFolder) {
+		super(agent, metadata, resourcesFolder);
+		this.agent.setHighLevelData(this);
+		
+		String taggedStr = metadata.get("DISASTER");
+
+	    if (taggedStr == null || !"true".equals(metadata.get("DISASTER"))) {
+	        this.setDisaster(false);
+	    } else {
+	        this.setDisaster(true);
+	    }
+	    
+	}
+
+	@Override
+	public void stop() {
+		/*
+		 * Clean resources, threads...etc
+		 */
+	}
+
+	@Override
+	public void step() {
+		
+		if (this.isDisaster()){
+			System.out.println("HeLLoOoOo");
+		}
+}

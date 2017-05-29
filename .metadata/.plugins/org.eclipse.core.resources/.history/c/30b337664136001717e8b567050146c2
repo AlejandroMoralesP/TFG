@@ -1,0 +1,340 @@
+package tutorialfollower.myfirstmassisproject;
+
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.List;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
+
+import com.massisframework.massis.model.agents.HighLevelController;
+import com.massisframework.massis.model.agents.LowLevelAgent;
+import com.massisframework.massis.model.building.Floor;
+import com.massisframework.massis.model.building.SimRoom;
+import com.massisframework.massis.model.location.Location;
+import com.massisframework.massis.model.managers.movement.ApproachCallback;
+import com.massisframework.massis.pathfinding.straightedge.FindPathResult.PathFinderErrorReason;
+
+import straightedge.geom.KPolygon;
+import straightedge.geom.path.PathBlockingObstacle;
+
+public class MyHelloHighLevelController extends HighLevelController {
+
+	private static final long serialVersionUID = 1L;
+	private static final double tag_max_distance = 50;
+	private static final double search_range = 200;
+	private Location currentTarget;
+	
+	public boolean isTagged() {
+	    return "true".equals(this.agent.getProperty("TAGGED"));
+	}
+	public void setTagged(boolean tagged) {
+	    this.agent.setProperty("TAGGED", String.valueOf(tagged));
+	}
+	
+	public boolean isKnowPlace() {
+	    return "true".equals(this.agent.getProperty("KNOWPLACE"));
+	}
+	public void setKnowPlace(boolean knowplace) {
+	    this.agent.setProperty("KNOWPLACE", String.valueOf(knowplace));
+	}
+	
+	public boolean isExperienced() {
+	    return "true".equals(this.agent.getProperty("EXPERIENCE"));
+	}
+	public void setExperienced(boolean experience) {
+	    this.agent.setProperty("EXPERIENCE", String.valueOf(experience));
+	}
+	
+	public boolean isKnowDisaster() {
+	    return "true".equals(this.agent.getProperty("KNOWDISASTER"));
+	}
+	public void setKnowDisaster(boolean knowdisaster) {
+	    this.agent.setProperty("KNOWDISASTER", String.valueOf(knowdisaster));
+	}
+	
+	public boolean isMethodKnowledged() {
+	    return "true".equals(this.agent.getProperty("METHODKNOWLEDGED"));
+	}
+	public void setMethodKnowledged(boolean methodknowledged) {
+	    this.agent.setProperty("METHODKNOWLEDGED", String.valueOf(methodknowledged));
+	}
+	
+	boolean DisasterRange(double range) {
+		boolean disaster=false; 
+		
+		for (LowLevelAgent otherAgent : this.agent.getAgentsInRange(range)) {
+			if ("true".equals(otherAgent.getProperty("DISASTER"))){
+				disaster = true;
+			}
+		}
+		return disaster;
+	}
+	
+	void UnexperiencedBehaviour(){
+		System.out.println("HELLOOOOO");
+
+	}
+	
+	
+	
+	void printAgentsIDsInRange(double range) {
+	    StringBuilder sb = new StringBuilder();
+
+	    for (LowLevelAgent otherAgent : this.agent.getAgentsInRange(range)) {
+	    final int otherId = otherAgent.getID();
+	    final Location agentLoc = this.agent.getLocation();
+	    final Location otherLoc = otherAgent.getLocation();
+	    final double distance = agentLoc.distance2D(otherLoc);
+	    if ("true".equals(otherAgent.getProperty("DISASTER"))){
+	    	System.out.println("MAAAAAAAAAAAAAMBO");
+	    }
+	   
+
+	    sb.append("\tAgent #").append(otherId).append(". distance: ")
+	            .append(distance).append("\n");
+	    }
+	    if (sb.length() > 0) {
+	    System.out.println("Agent #" + this.agent.getID()+
+	        " has in the range of "+range+" cm:");
+	    
+	    System.out.println(sb.toString());
+	    }
+	}
+	
+	public MyHelloHighLevelController(LowLevelAgent agent, Map<String, String> metadata, String resourcesFolder) {
+		super(agent, metadata, resourcesFolder);
+		this.agent.setHighLevelData(this);
+		
+		String taggedStr = metadata.get("KNOWPLACE");
+	    
+	    if (taggedStr == null || !"true".equals(metadata.get("KNOWPLACE"))) {
+	        this.setKnowPlace(false);
+	    } else {
+	        this.setKnowPlace(true);
+	    }
+	    
+	    taggedStr = metadata.get("EXPERIENCE");
+	    
+	    if (taggedStr == null || !"true".equals(metadata.get("EXPERIENCE"))) {
+	        this.setExperienced(false);
+	    } else {
+	        this.setExperienced(true);
+	    }
+	    
+	    taggedStr = metadata.get("KNOWDISASTER");
+	    
+	    if (taggedStr == null || !"true".equals(metadata.get("KNOWDISASTER"))) {
+	        this.setKnowDisaster(false);
+	    } else {
+	        this.setKnowDisaster(true);
+	    }
+	    
+	    taggedStr = metadata.get("METHODKNOWLEDGED");
+	    
+	    if (taggedStr == null || !"true".equals(metadata.get("METHODKNOWLEDGED"))) {
+	        this.setMethodKnowledged(false);
+	    } else {
+	        this.setMethodKnowledged(true);
+	    }
+	    
+	}
+	
+	private MyHelloHighLevelController getNearestAgent (double range, boolean tagStatus) {
+
+		/* Set a high limit */
+		double minDist = Float.MAX_VALUE;
+
+		/* Location of this agent */
+		final Location agentLoc = this.agent.getLocation();
+
+		/* Nearest agent found */
+		MyHelloHighLevelController nearest = null;
+		for (LowLevelAgent otherAgent : this.agent.getAgentsInRange(range)) {
+			/*
+			 * Retrieve the high-level data of the other agent. It should be of
+			 * the type of agent playing this game, MyHelloHighLevelController.
+			 */
+			final Object highLevelData = otherAgent.getHighLevelData();
+			if (highLevelData instanceof MyHelloHighLevelController) {
+				MyHelloHighLevelController otherCtrl =
+						(MyHelloHighLevelController) highLevelData;
+				/*
+				 * Check the search condition
+				 */
+				if (otherCtrl.isTagged() == tagStatus) {
+					final Location otherLoc = otherAgent.getLocation();
+					final double distance = agentLoc.distance2D(otherLoc);
+					/*
+					 * Store if nearest.
+					 */
+					if (distance < minDist) {
+						nearest = otherCtrl;
+						minDist=distance;
+					}
+				}
+			}
+		}
+		return nearest;
+	}
+	
+	private boolean seesTaggedAgent() {
+	    // true, because is tagged
+	    return getNearestAgent(search_range, true) != null;
+	}
+	
+	private boolean isDistanceLessThan50cm(LowLevelAgent a1, LowLevelAgent a2) {
+		return a1.getLocation().distance2D(a2.getLocation())<50;
+	}
+
+	@Override
+	public void stop() {
+		/*
+		 * Clean resources, threads...etc
+		 */
+	}
+
+	@Override
+	public void step() {
+		
+		if (this.currentTarget == null) {
+	       	/* 1 */ SimRoom currentRoom = this.agent.getRoom();
+	       	/* 2 */ this.currentTarget = currentRoom.getRandomLoc();
+	    }
+
+	    ApproachCallback callback = new ApproachCallback() {
+	       	@Override
+	       	public void onTargetReached(LowLevelAgent agent) {
+	           	// Target has been reached.
+	       		currentTarget = null;
+	       	}
+
+	       	@Override
+	       	public void onSucess(LowLevelAgent agent) {
+	           	// Everything ok. The agent has moved a little bit.
+	       		if(DisasterRange(300)){
+	       			System.out.println("LOO VEEOOO");
+	       			setKnowDisaster(true);
+	       			if(!isKnowPlace()){
+	       				UnexperiencedBehaviour();
+	       			}
+	       				
+	       		}
+	       	}
+
+	       	@Override
+	       	public void onPathFinderError(PathFinderErrorReason reason) {
+	           	// Error!
+	           	Logger.getLogger(MyHelloHighLevelController.class.getName())
+	            	.log(Level.SEVERE,
+	           		   "Error when approaching to {0} Reason: {1}",
+	             	new Object[] { currentTarget, reason });
+	       	}
+	   	};
+	
+	   	/* 3 */ this.agent.approachTo(this.currentTarget, callback);
+		/*if (this.isTagged()) {
+	        runAsTagged();
+	    } else {
+	        runAsNotTagged();
+	    }*/
+	}
+	
+	private void runAsNotTagged() {
+        // sees tagged agent?
+        if (seesTaggedAgent()) {
+            /*
+             * Retrieve the polygon associated with the current room
+             */
+            KPolygon polygon = this.agent.getRoom().getPolygon();
+            /*
+             * If the agent's target is in the same room of the agent (and in
+             * the same room as the "tagged" one), select a new target in a
+             * different room.
+             */
+            while (this.randomTarget == null
+                    || polygon.contains(this.randomTarget.getXY())) {
+                this.randomTarget = this.agent.getRandomRoom().getRandomLoc();
+            }
+        }
+        this.moveRandomly();
+    }
+	
+	private void runAsTagged() {
+	    final Location agentLoc = this.agent.getLocation();
+	    // Sees un-tagged agent?
+	    MyHelloHighLevelController nearest = getNearestAgent(search_range, false);
+	    if (nearest != null) {
+	        final Location nearestLoc = nearest.agent.getLocation();
+	        // Yes, and is the closest one.
+	        // if distance < 0.5 m, (50 cm), tag it
+	        final double distance = agentLoc.distance2D(nearestLoc);
+	        if (distance < tag_max_distance) {
+	            // tag it
+	            nearest.setTagged(true);
+	            System.out.println("COGIDO");
+	            // un-tag itself
+	            this.setTagged(false);
+	            System.out.println("ME LIBRO");
+	            // end
+	        } else {
+	            // chase him
+	            this.agent.approachTo(nearestLoc, new ApproachCallback() {
+
+	                @Override
+	                public void onTargetReached(LowLevelAgent agent) {
+	                    // Nothing this time. We are handling the logic
+	                    // elsewhere.
+	                }
+
+	                @Override
+	                public void onSucess(LowLevelAgent agent) {
+	                }
+
+	                @Override
+	                public void onPathFinderError(
+	                        PathFinderErrorReason reason) {
+	                    // Error!
+	                    Logger.getLogger(
+	                            MyHelloHighLevelController.class.getName())
+	                            .log(Level.SEVERE,
+	                                    "Error when approaching to {0} Reason: {1}",
+	                                    new Object[] { nearestLoc, reason });
+	                }
+	            });
+	        }
+	    } else {
+	        // no target found:
+	        this.moveRandomly();
+	    }
+
+	}
+	
+	private Location randomTarget = null;
+
+	private void moveRandomly() {
+	    if (this.randomTarget == null) {
+	        Location randomLocation = this.agent.getRandomRoom().getRandomLoc();
+	        this.randomTarget = randomLocation;
+	    }
+	    this.agent.approachTo(this.randomTarget, new ApproachCallback() {
+
+	        @Override
+	        public void onTargetReached(LowLevelAgent agent) {
+	            randomTarget = null;
+	        }
+
+	        @Override
+	        public void onSucess(LowLevelAgent agent) {
+	        }
+
+	        @Override
+	        public void onPathFinderError(PathFinderErrorReason reason) {
+	            // Error!
+	            Logger.getLogger(MyHelloHighLevelController.class.getName())
+	                    .log(Level.SEVERE,
+	                            "Error when finding path Reason: {0}", reason);
+	        }
+	    });
+	}
+}

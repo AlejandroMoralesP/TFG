@@ -1,0 +1,104 @@
+package tutorialfollower.myfirstmassisproject;
+
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.List;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
+
+import com.massisframework.massis.model.agents.HighLevelController;
+import com.massisframework.massis.model.agents.LowLevelAgent;
+import com.massisframework.massis.model.building.Floor;
+import com.massisframework.massis.model.building.SimRoom;
+import com.massisframework.massis.model.location.Location;
+import com.massisframework.massis.model.managers.movement.ApproachCallback;
+import com.massisframework.massis.pathfinding.straightedge.FindPathResult.PathFinderErrorReason;
+
+public class MyHelloHighLevelController extends HighLevelController {
+
+	private static final long serialVersionUID = 1L;
+	private Location currentTarget;
+	
+	public boolean isTagged() {
+	    return "true".equals(this.agent.getProperty("TAGGED"));
+	}
+	public void setTagged(boolean tagged) {
+	    this.agent.setProperty("TAGGED", String.valueOf(tagged));
+	}
+	
+	void printAgentsIDsInRange(double range) {
+	    StringBuilder sb = new StringBuilder();
+
+	    for (LowLevelAgent otherAgent : this.agent.getAgentsInRange(range)) {
+	    final int otherId = otherAgent.getID();
+	    final Location agentLoc = this.agent.getLocation();
+	    final Location otherLoc = otherAgent.getLocation();
+	    final double distance = agentLoc.distance2D(otherLoc);
+
+	    sb.append("\tAgent #").append(otherId).append(". distance: ")
+	            .append(distance).append("\n");
+	    }
+	    if (sb.length() > 0) {
+	    System.out.println("Agent #" + this.agent.getID()+
+	        " has in the range of "+range+" cm:");
+	    System.out.println(sb.toString());
+	    }
+	}
+	
+	public MyHelloHighLevelController(LowLevelAgent agent, Map<String, String> metadata, String resourcesFolder) {
+		super(agent, metadata, resourcesFolder);
+		this.agent.setHighLevelData(this);
+	}
+
+	@Override
+	public void stop() {
+		/*
+		 * Clean resources, threads...etc
+		 */
+	}
+
+	@Override
+	public void step() {
+		//System.out.println("Hey! I am an agent!");
+		
+		printAgentsIDsInRange(200);
+		
+		if (this.currentTarget == null) {
+			/* 1 */
+	        Random rnd = ThreadLocalRandom.current();
+	        Location agentLocation = agent.getLocation();
+	        Floor agentFloor = agentLocation.getFloor();
+	        List<SimRoom> roomsInFloor = agentFloor.getRooms();
+	        int numberOfRooms = roomsInFloor.size();
+	        int rndRoomIndex = rnd.nextInt(numberOfRooms);
+	        final SimRoom rndRoom = roomsInFloor.get(rndRoomIndex);
+
+	     /* 2 */ 
+	        Location randomLocation = rndRoom.getRandomLoc();
+	        this.currentTarget = randomLocation;
+	    }
+
+	    ApproachCallback callback = new ApproachCallback() {
+	        @Override
+	        public void onTargetReached(LowLevelAgent agent) {
+	        	currentTarget = null;
+	        }
+
+	        @Override
+	        public void onSucess(LowLevelAgent agent) {
+	            // Everything ok. The agent has moved a little bit.
+	        }
+
+	        @Override
+	        public void onPathFinderError(PathFinderErrorReason reason) {
+	            // Error!
+	            Logger.getLogger(MyHelloHighLevelController.class.getName())
+	               .log(Level.SEVERE,"Error when approaching to {0} Reason: {1}",
+	               new Object[] { currentTarget, reason });
+	        }
+	    };
+
+	    /* 3 */ this.agent.approachTo(this.currentTarget, callback);
+	}
+}
