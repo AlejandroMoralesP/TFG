@@ -14,6 +14,10 @@ public class TagGameLayer extends DrawableLayer<DrawableFloor> {
     private static Color DEFAULT_PERSON_DRAW_COLOR = Color.BLUE;
     private static Color TAGGED_PERSON_DRAW_COLOR = Color.RED;
     private static Color UNTAGGED_PERSON_DRAW_COLOR = Color.GREEN;
+    private static Color BEHAVIOUR_5 = Color.BLACK;
+    private static Color BEHAVIOUR_6 = Color.DARK_GRAY;
+    private static Color BEHAVIOUR_7 = Color.PINK;
+    private static Color BEHAVIOUR_8 = Color.YELLOW;
 
     public TagGameLayer(boolean enabled) {
         super(enabled);
@@ -33,12 +37,26 @@ public class TagGameLayer extends DrawableLayer<DrawableFloor> {
                 poly.translateTo(p.getX(), p.getY());
                 g.setColor(DEFAULT_PERSON_DRAW_COLOR);
                 g.draw(poly);
-                if (p.hasProperty("TAGGED")) {
-                    if ("true".equals(p.getProperty("TAGGED"))) {
+                if ("true".equals(p.getProperty("KNOWDISASTER"))) {
+                    if (/*"false".equals(p.getProperty("METHODKNOWLEDGED")) && "false".equals(p.getProperty("KNOWPLACE")) &&*/ "false".equals(p.getProperty("EXPERIENCE"))) {
+                        //g.setColor(DEFAULT_PERSON_FILL_COLOR);
+                    	g.setColor(BEHAVIOUR_8);
+                    } else if (/*"false".equals(p.getProperty("METHODKNOWLEDGED")) && "false".equals(p.getProperty("KNOWPLACE")) &&*/ "true".equals(p.getProperty("EXPERIENCE")))  { // untagged agents
+                        //g.setColor(DEFAULT_PERSON_DRAW_COLOR);
+                    	g.setColor(BEHAVIOUR_5);
+                    } /*else if ("false".equals(p.getProperty("METHODKNOWLEDGED")) && "true".equals(p.getProperty("KNOWPLACE")) && "false".equals(p.getProperty("EXPERIENCE")))  { // untagged agents
                         g.setColor(TAGGED_PERSON_DRAW_COLOR);
-                    } else { // untagged agents
+                    } else if ("false".equals(p.getProperty("METHODKNOWLEDGED")) && "true".equals(p.getProperty("KNOWPLACE")) && "true".equals(p.getProperty("EXPERIENCE")))  { // untagged agents
                         g.setColor(UNTAGGED_PERSON_DRAW_COLOR);
-                    }
+                    } else if ("true".equals(p.getProperty("METHODKNOWLEDGED")) && "false".equals(p.getProperty("KNOWPLACE")) && "false".equals(p.getProperty("EXPERIENCE")))  { // untagged agents
+                        g.setColor(BEHAVIOUR_5);
+                    } else if ("true".equals(p.getProperty("METHODKNOWLEDGED")) && "false".equals(p.getProperty("KNOWPLACE")) && "true".equals(p.getProperty("EXPERIENCE")))  { // untagged agents
+                        g.setColor(BEHAVIOUR_6);
+                    } else if ("true".equals(p.getProperty("METHODKNOWLEDGED")) && "true".equals(p.getProperty("KNOWPLACE")) && "false".equals(p.getProperty("EXPERIENCE")))  { // untagged agents
+                        g.setColor(BEHAVIOUR_7);
+                    } else if ("true".equals(p.getProperty("METHODKNOWLEDGED")) && "true".equals(p.getProperty("KNOWPLACE")) && "true".equals(p.getProperty("EXPERIENCE")))  { // untagged agents
+                        g.setColor(BEHAVIOUR_8);
+                    }*/
                 } else {
                     g.setColor(DEFAULT_PERSON_FILL_COLOR);
                 }
