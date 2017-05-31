@@ -4162,3 +4162,13 @@ org.eclipse.core.runtime.CoreException: Cannot determine URI for '/myfirstmassis
 
 !ENTRY org.eclipse.jdt.core 2 0 2017-05-30 01:11:44.503
 !MESSAGE The Java indexing could not index /home/alejandro/.m2/repository/com/ibm/icu/icu4j/2.6.1/icu4j-2.6.1.jar|com/ibm/icu/impl/data/LocaleElements_zh__PINYIN.class. This .class file doesn't follow the class file format specification. Please report this issue against the .class file vendor
+!SESSION 2017-05-30 14:47:15.724 -----------------------------------------------
+eclipse.buildId=4.6.2.M20161124-1400
+java.version=1.8.0_45-internal
+java.vendor=Oracle Corporation
+BootLoader constants: OS=linux, ARCH=x86, WS=gtk, NL=es_ES
+Framework arguments:  -product org.eclipse.epp.package.java.product
+Command-line arguments:  -os linux -ws gtk -arch x86 -product org.eclipse.epp.package.java.product
+
+!ENTRY org.eclipse.core.resources 2 10035 2017-05-30 14:47:33.592
+!MESSAGE The workspace exited with unsaved changes in the previous session; refreshing workspace to recover changes.

@@ -110,7 +110,7 @@ public class AgentHighLevelController extends HighLevelController {
 					follower.setFollowTarget(this.agent);
 					follower.setDisasterLocation(null);
 					numberOfFollowers++;
-					System.out.println("Sigueme");
+					//System.out.println("Sigueme");
 				}
 			}
 		}
@@ -125,7 +125,7 @@ public class AgentHighLevelController extends HighLevelController {
 						setFollowTarget(leader.agent);
 						leader.numberOfFollowers++;
 						setState(true);
-						System.out.println("Sigo al valiente");
+						//System.out.println("Sigo al valiente");
 						return true;
 					}
 				}
@@ -135,58 +135,25 @@ public class AgentHighLevelController extends HighLevelController {
 		return false;
 	}
 	
-	void KeepMoving(){
-		System.out.println("Como me sale de los cojones");
-		if (this.currentTarget == null) {
-       		/* 1 */ SimRoom currentRoom = this.agent.getRoom();
-       		/* 2 */ this.currentTarget = currentRoom.getRandomLoc();
-    	}
-
-		ApproachCallback callback = new ApproachCallback() {
-			@Override
-			public void onTargetReached(LowLevelAgent agent) {
-				// Target has been reached.
-				currentTarget = null;
-			}
-
-			@Override
-			public void onSucess(LowLevelAgent agent) {
-				// Everything ok. The agent has moved a little bit.
-			}
-
-			@Override
-			public void onPathFinderError(PathFinderErrorReason reason) {
-				// Error!
-				Logger.getLogger(AgentHighLevelController.class.getName())
-            		.log(Level.SEVERE,
-            				"Error when approaching to {0} Reason: {1}",
-            				new Object[] { currentTarget, reason });
-			}
-		};
-   		
-		/* 3 */ this.agent.approachTo(this.currentTarget, callback);
-		
-	}
-	
-	private Location destino = null;
+	private Location destination = null;
 	
 	void fuga(){
 		int aux = this.agent.getRoom().getRoomsOrderedByDistance().size()/2;
 		int last = this.agent.getRoom().getRoomsOrderedByDistance().size()-1;
 		
-		if(destino == null){
+		if(destination == null){
 			for(int i = 0; i < last+1 ; i++){
 				if(this.agent.getRoom() == this.agent.getRoom().getRoomsOrderedByDistance().get(i)){
 					if(i<=aux){
-						destino = this.agent.getRoom().getRoomsOrderedByDistance().get(last).getRandomLoc();
+						destination = this.agent.getRoom().getRoomsOrderedByDistance().get(last).getRandomLoc();
 					}
 					else{
-						destino = this.agent.getRoom().getRoomsOrderedByDistance().get(0).getRandomLoc();
+						destination = this.agent.getRoom().getRoomsOrderedByDistance().get(0).getRandomLoc();
 					}
 				}
 			}
 		}
-		//Location destino = this.agent.getLocation().getFloor().getDoors().get(0).getLocation();
+		//Location destination = this.agent.getLocation().getFloor().getDoors().get(0).getLocation();
 
 		ApproachCallback callback = new ApproachCallback() {
 			@Override
@@ -206,24 +173,24 @@ public class AgentHighLevelController extends HighLevelController {
 				Logger.getLogger(AgentHighLevelController.class.getName())
            			.log(Level.SEVERE,
            					"Error when approaching to {0} Reason: {1}",
-           					new Object[] { destino, reason });
+           					new Object[] { destination, reason });
 			}
 		};
-		/* 3 */ this.agent.approachTo(destino, callback);
+		/* 3 */ this.agent.approachTo(destination, callback);
 
 	}
 	
 	private SimRoom Room;
 	
 	void escaparse(){
-		if (destino == null){
+		if (destination == null){
 			Room = this.agent.getRandomRoom();
 			
 			while (Room == this.agent.getRoom()){
 				Room = this.agent.getRandomRoom();
 			}
 			
-			destino = Room.getRandomLoc();
+			destination = Room.getRandomLoc();
 		}
 		
 		ApproachCallback callback = new ApproachCallback() {
@@ -244,10 +211,10 @@ public class AgentHighLevelController extends HighLevelController {
 				Logger.getLogger(AgentHighLevelController.class.getName())
            			.log(Level.SEVERE,
            					"Error when approaching to {0} Reason: {1}",
-           					new Object[] { destino, reason });
+           					new Object[] { destination, reason });
 			}
 		};
-		/* 3 */ this.agent.approachTo(destino, callback);
+		/* 3 */ this.agent.approachTo(destination, callback);
 		
 	}
 	
@@ -378,13 +345,13 @@ public class AgentHighLevelController extends HighLevelController {
 			public void onSucess(LowLevelAgent agent) {
 				// Everything ok. The agent has moved a little bit.
 				if(DisasterRange(search_range)){
-					System.out.println("Veo el desastre");
+					//System.out.println("Veo el desastre");
 					setKnowDisaster(true);
 					setMethodKnowledged(false);
 				}
 				
 				else if(ByExpertRange(search_range) == 2 || ByExpertRange(search_range) == 1){
-					System.out.println("Me entero del desastre por otro");
+					//System.out.println("Me entero del desastre por otro");
 					setKnowDisaster(true);
 					setMethodKnowledged(true);
 				}
@@ -415,7 +382,7 @@ public class AgentHighLevelController extends HighLevelController {
 			public void onSucess(LowLevelAgent agent) {
 				// Everything ok. The agent has moved a little bit.
 				if(DisasterRange(search_range)){
-					System.out.println("LOO VEEOOO343434");
+					//System.out.println("LOO VEEOOO343434");
 					setDisasterLocation(null);
 				}
 			}
