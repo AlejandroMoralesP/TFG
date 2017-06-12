@@ -21,8 +21,6 @@ import straightedge.geom.path.PathBlockingObstacle;
 public class ObjectHighLevelController extends HighLevelController {
 
 	private static final long serialVersionUID = 1L;
-	private static final double tag_max_distance = 50;
-	private static final double search_range = 200;
 	
 	public boolean isDisaster() {
 	    return "true".equals(this.agent.getProperty("DISASTER"));

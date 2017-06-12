@@ -1,11 +1,15 @@
 package tutorialfollower.myfirstmassisproject;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.massisframework.massis.model.agents.HighLevelController;
 import com.massisframework.massis.model.agents.LowLevelAgent;
+import com.massisframework.massis.model.building.Floor;
 import com.massisframework.massis.model.building.SimRoom;
 import com.massisframework.massis.model.location.Location;
 import com.massisframework.massis.model.managers.movement.ApproachCallback;
@@ -88,7 +92,7 @@ public class AgentHighLevelController extends HighLevelController {
 
 		for (LowLevelAgent otherAgent : this.agent.getAgentsInRange(range)) {
 			if ("true".equals(otherAgent.getProperty("KNOWDISASTER")) ){
-				if ("true".equals(otherAgent.getProperty("EXPERIENCE"))){
+				if ("true".equals(otherAgent.getProperty("EXPERIENCE")) || "true".equals(otherAgent.getProperty("STATE"))){
 					setbyExpert(2);
 				}
 				else {
@@ -103,7 +107,7 @@ public class AgentHighLevelController extends HighLevelController {
 	
 	private void followMeUnexperienced(double range){
 		for (LowLevelAgent otherAgent : this.agent.getAgentsInRange(range)) {
-			if (numberOfFollowers < 4 && otherAgent.getID() != 57){
+			if (numberOfFollowers < 4 && (otherAgent.getID() < 1148 || otherAgent.getID() > 1153 )){
 				final AgentHighLevelController follower = (AgentHighLevelController) otherAgent.getHighLevelData();
 				if ("false".equals(otherAgent.getProperty("EXPERIENCE")) && follower.isFollowingSomeone() == null && follower.getdisasterLocation() != null){
 					follower.setKnowDisaster(true);
@@ -118,7 +122,7 @@ public class AgentHighLevelController extends HighLevelController {
 	
 	private boolean sigueloael(double range){
 		for (LowLevelAgent otherAgent : this.agent.getAgentsInRange(range)) {
-			if (otherAgent.getID() != 57){
+			if (otherAgent.getID() < 1148 || otherAgent.getID() > 1153){
 				final AgentHighLevelController leader = (AgentHighLevelController) otherAgent.getHighLevelData();
 				if ("true".equals(otherAgent.getProperty("KNOWDISASTER")) && leader.numberOfFollowers < 3){
 					if ("true".equals(otherAgent.getProperty("EXPERIENCE")) && this.isFollowingSomeone() == null && leader.getdisasterLocation() == null){
@@ -330,9 +334,21 @@ public class AgentHighLevelController extends HighLevelController {
 	
 	void moveRandomly (){
 		if (this.currentTarget == null) {
-       		/* 1 */ SimRoom currentRoom = this.agent.getRoom();
-       		/* 2 */ this.currentTarget = currentRoom.getRandomLoc();
-    	}
+		    /* 1 */
+		        /*Random rnd = ThreadLocalRandom.current();
+		        Location agentLocation = agent.getLocation();
+		        Floor agentFloor = agentLocation.getFloor();
+		        List<SimRoom> roomsInFloor = agentFloor.getRooms();
+		        int numberOfRooms = roomsInFloor.size();
+		        int rndRoomIndex = rnd.nextInt(numberOfRooms);
+		        final SimRoom rndRoom = roomsInFloor.get(rndRoomIndex);
+
+		     /* 2 */ 
+		        /*Location randomLocation = rndRoom.getRandomLoc();
+		        this.currentTarget = randomLocation;*/
+			/* 1 */ SimRoom currentRoom = this.agent.getRoom();
+   			/* 2 */ this.currentTarget = currentRoom.getRandomLoc();
+		}
 
 		ApproachCallback callback = new ApproachCallback() {
 			@Override

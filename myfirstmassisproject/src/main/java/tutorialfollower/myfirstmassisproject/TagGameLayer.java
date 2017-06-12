@@ -23,6 +23,7 @@ public class TagGameLayer extends DrawableLayer<DrawableFloor> {
     private int expertosPM = 0;
     private int expertosSM = 0;
     private int seguidores = 0;
+    private int unknow = 0;
 
     public TagGameLayer(boolean enabled) {
         super(enabled);
@@ -32,10 +33,11 @@ public class TagGameLayer extends DrawableLayer<DrawableFloor> {
     public void draw(DrawableFloor dfloor, Graphics2D g)
     {
     	
-    	if (steps%1000 == 0){
+    	if (steps%2 == 0){
     		System.out.print("\n\n\n\n\n");
     		System.out.println("Estadísticas:\n Expertos que conocen el desastre de primera mano: " + expertosPM);
     		System.out.println(" Expertos que conocen el desastre por otros: " + expertosSM + "\n Fugados: " + fugados + "\n Seguidores: " + seguidores);
+    		System.out.println(" Desconocen el desastre: " + (unknow-expertosPM-expertosSM-fugados-seguidores));
     	}
     	
     	steps++;
@@ -44,7 +46,12 @@ public class TagGameLayer extends DrawableLayer<DrawableFloor> {
         for ( DefaultAgent p : f.getAgents() ) {
             if ( p.isDynamic() )
             {
-            	
+            	if (steps%2 == 0){
+            		unknow++;
+            	}
+                if (steps%2 == 1){
+            		unknow = 0;
+            	}
             	
                 KPolygon poly = KPolygon.
                createRegularPolygon(3, p.getPolygon().getRadius());
@@ -54,42 +61,45 @@ public class TagGameLayer extends DrawableLayer<DrawableFloor> {
                 g.setColor(UNKNOWK_DISASTER);
                 g.draw(poly);
                 if ("true".equals(p.getProperty("KNOWDISASTER"))) {
-                    if ("true".equals(p.getProperty("STATE")) && "true".equals(p.getProperty("EXPERIENCE"))) {
+                    if ("false".equals(p.getProperty("STATE")) && "true".equals(p.getProperty("EXPERIENCE"))) {
                         //g.setColor(DEFAULT_PERSON_FILL_COLOR);
-                    	g.setColor(BEHAVIOUR_2);
-                    	if (steps%1000 == 0){
+                    	g.setColor(BEHAVIOUR_5);
+                    	if (steps%2 == 0){
                     		expertosPM++;
                     	}
-                    	if (steps%1000 == 1){
+                    	if (steps%2 == 1){
                     		expertosPM = 0;
                     	}
-                    } else if ("false".equals(p.getProperty("STATE")) && "true".equals(p.getProperty("EXPERIENCE")))  { // untagged agents
+                    } 
+                    if ("true".equals(p.getProperty("STATE")) && "true".equals(p.getProperty("EXPERIENCE")))  { // untagged agents
                         //g.setColor(DEFAULT_PERSON_DRAW_COLOR);
-                    	g.setColor(BEHAVIOUR_5);
-                    	if (steps%1000 == 0){
+                    	g.setColor(BEHAVIOUR_2);
+                    	if (steps%2 == 0){
                     		expertosSM++;
                     	}
-                    	if (steps%1000 == 1){
+                    	if (steps%2 == 1){
                     		expertosSM = 0;
                     	}
-                    } else if ("true".equals(p.getProperty("STATE")) && "false".equals(p.getProperty("EXPERIENCE")))  { // untagged agents
+                    } 
+                    if ("true".equals(p.getProperty("STATE")) && "false".equals(p.getProperty("EXPERIENCE")))  { // untagged agents
                         //g.setColor(DEFAULT_PERSON_DRAW_COLOR);
                     	g.setColor(BEHAVIOUR_4);
-                    	if (steps%1000 == 0){
+                    	if (steps%2 == 0){
                     		seguidores++;
                     	}
-                    	if (steps%1000 == 1){
+                    	if (steps%2 == 1){
                     		seguidores = 0;
                     	}
-                    } else if ("false".equals(p.getProperty("STATE")) && "false".equals(p.getProperty("EXPERIENCE")))  { // untagged agents
+                    } 
+                    if ("false".equals(p.getProperty("STATE")) && "false".equals(p.getProperty("EXPERIENCE")))  { // untagged agents
                         //g.setColor(DEFAULT_PERSON_DRAW_COLOR);
                     	g.setColor(BEHAVIOUR_7);
-                    	if (steps%1000 == 0){
+                    	if (steps%2 == 0){
                     		if (("true".equals(p.getProperty("KNOWPLACE")) && "false".equals(p.getProperty("METHODKNOWLEDGED"))) || ("false".equals(p.getProperty("KNOWPLACE")) && "true".equals(p.getProperty("METHODKNOWLEDGED")))){
                     			fugados++;
                     		}
                     	}
-                    	if (steps%1000 == 1){
+                    	if (steps%2 == 1){
                     		fugados = 0;
                     	}
                     }
