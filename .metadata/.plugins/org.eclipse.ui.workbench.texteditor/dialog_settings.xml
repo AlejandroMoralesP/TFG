@@ -2,22 +2,23 @@
 <section name="Workbench">
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
 		<item value="false" key="isRegEx"/>
-		<item value="setState(true)" key="selection"/>
+		<item value="escape" key="selection"/>
 		<item value="false" key="casesensitive"/>
 		<item value="false" key="incremental"/>
 		<item value="true" key="wrap"/>
 		<item value="false" key="wholeword"/>
 		<list key="findhistory">
+			<item value="fuga"/>
+			<item value="followme"/>
 			<item value="setstate(true)"/>
 			<item value="setstate(true="/>
 			<item value="setstate"/>
 			<item value="sigoo"/>
 			<item value="moverand"/>
-			<item value="followme"/>
 			<item value="sigueloa"/>
-			<item value="isfollow"/>
 		</list>
 		<list key="replacehistory">
+			<item value="escape"/>
 			<item value="2"/>
 			<item value="20"/>
 			<item value="destination"/>

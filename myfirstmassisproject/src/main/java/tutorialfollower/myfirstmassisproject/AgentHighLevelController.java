@@ -67,7 +67,7 @@ public class AgentHighLevelController extends HighLevelController {
 	    byExpert = answer;
 	}
 	
-	public Location getdisasterLocation() {
+	public Location getDisasterLocation() {
 	    return disasterLocation;
 	}
 	public void setDisasterLocation(Location disasterLoc) {
@@ -98,18 +98,18 @@ public class AgentHighLevelController extends HighLevelController {
 				else {
 					setbyExpert(1);
 					final AgentHighLevelController agent = (AgentHighLevelController) otherAgent.getHighLevelData();
-					setDisasterLocation(agent.getdisasterLocation());
+					setDisasterLocation(agent.getDisasterLocation());
 				}
 			}
 		}
 		return isbyExpert();
 	}
 	
-	private void followMeUnexperienced(double range){
+	private void followMeInexpert(double range){
 		for (LowLevelAgent otherAgent : this.agent.getAgentsInRange(range)) {
-			if (numberOfFollowers < 4 && (otherAgent.getID() < 1148 || otherAgent.getID() > 1153 )){
+			if (numberOfFollowers < 4 && (otherAgent.getID() < 1148 || otherAgent.getID() > 1153 )/* otherAgent.getID() != 57*/){
 				final AgentHighLevelController follower = (AgentHighLevelController) otherAgent.getHighLevelData();
-				if ("false".equals(otherAgent.getProperty("EXPERIENCE")) && follower.isFollowingSomeone() == null && follower.getdisasterLocation() != null){
+				if ("false".equals(otherAgent.getProperty("EXPERIENCE")) && follower.isFollowingSomeone() == null && follower.getDisasterLocation() != null){
 					follower.setKnowDisaster(true);
 					follower.setFollowTarget(this.agent);
 					follower.setDisasterLocation(null);
@@ -120,12 +120,12 @@ public class AgentHighLevelController extends HighLevelController {
 		}
 	}
 	
-	private boolean sigueloael(double range){
+	private boolean followExpert(double range){
 		for (LowLevelAgent otherAgent : this.agent.getAgentsInRange(range)) {
-			if (otherAgent.getID() < 1148 || otherAgent.getID() > 1153){
+			if (otherAgent.getID() < 1148 || otherAgent.getID() > 1153/* otherAgent.getID() != 57*/){
 				final AgentHighLevelController leader = (AgentHighLevelController) otherAgent.getHighLevelData();
 				if ("true".equals(otherAgent.getProperty("KNOWDISASTER")) && leader.numberOfFollowers < 3){
-					if ("true".equals(otherAgent.getProperty("EXPERIENCE")) && this.isFollowingSomeone() == null && leader.getdisasterLocation() == null){
+					if ("true".equals(otherAgent.getProperty("EXPERIENCE")) && this.isFollowingSomeone() == null && leader.getDisasterLocation() == null){
 						setFollowTarget(leader.agent);
 						leader.numberOfFollowers++;
 						setState(true);
@@ -141,7 +141,7 @@ public class AgentHighLevelController extends HighLevelController {
 	
 	private Location destination = null;
 	
-	void fuga(){
+	void escapeToFarthestZone(){
 		int aux = this.agent.getRoom().getRoomsOrderedByDistance().size()/2;
 		int last = this.agent.getRoom().getRoomsOrderedByDistance().size()-1;
 		
@@ -186,7 +186,7 @@ public class AgentHighLevelController extends HighLevelController {
 	
 	private SimRoom Room;
 	
-	void escaparse(){
+	void escapeToSafeZone(){
 		if (destination == null){
 			Room = this.agent.getRandomRoom();
 			
@@ -222,20 +222,20 @@ public class AgentHighLevelController extends HighLevelController {
 		
 	}
 	
-	void UnexperiencedBehaviour(){
+	void InexpertBehaviour(){
 			if(isKnowPlace()){
 				if(isMethodKnowledged()){
 					if(isbyExpert() == 2){
 						//Lo sigue		
-						follow(isFollowingSomeone());
-						sigueloael(search_range);
+						iAmFollowing(isFollowingSomeone());
+						followExpert(search_range);
 						
 					}
 					else if(isbyExpert() == 1){
 						//Huye y alerta a demas
 						setDisasterLocation(null);
 						setState(false);
-						fuga();
+						escapeToFarthestZone();
 					}
 				}
 				else{
@@ -243,7 +243,7 @@ public class AgentHighLevelController extends HighLevelController {
 					//System.out.println(this.agent.getLocation().getFloor().getDoors().get(1).getLocation());
 					setDisasterLocation(null);
 					setState(false);
-					fuga();
+					escapeToFarthestZone();
 				}
 			}
 			else {
@@ -251,8 +251,8 @@ public class AgentHighLevelController extends HighLevelController {
 					//sigue a experto
 					if(isbyExpert() == 2){
 						//Lo sigue
-						follow(isFollowingSomeone());
-						sigueloael(search_range);
+						iAmFollowing(isFollowingSomeone());
+						followExpert(search_range);
 						
 						
 						
@@ -261,19 +261,19 @@ public class AgentHighLevelController extends HighLevelController {
 						//Huye y alerta a demas
 						setDisasterLocation(null);
 						setState(false);
-						escaparse();
+						escapeToSafeZone();
 					}
 
 				}
 				else{
 					//Pánico y paralizado
-					sigueloael(search_range);
-					follow(isFollowingSomeone());
+					followExpert(search_range);
+					iAmFollowing(isFollowingSomeone());
 				}
 			}
 	}
 	
-	void ExperiencedBehaviour(){
+	void ExpertBehaviour(){
 			if(isMethodKnowledged()){
 				setState(true);
 				if(isbyExpert() == 2){
@@ -285,20 +285,20 @@ public class AgentHighLevelController extends HighLevelController {
 						//reune a otros agentes en otra sala
 						followMe();
 						if(numberOfFollowers == 3) {
-							escaparse();
+							escapeToSafeZone();
 						}
 					}
 				}
 				else if (isbyExpert() == 1){
 					//ir a ver que pasa
-					if (getdisasterLocation() != null){
-						whatsUp(getdisasterLocation());
+					if (getDisasterLocation() != null){
+						whatisUp(getDisasterLocation());
 					}
 					if(isKnowPlace()){
 						//busca a otros agentes y va a la sala mas alejada
 						followMe();
 						if(numberOfFollowers == 3) {
-							fuga();
+							escapeToFarthestZone();
 						}
 						
 					}
@@ -306,7 +306,7 @@ public class AgentHighLevelController extends HighLevelController {
 						//reune a otros agentes en otra sala
 						followMe();
 						if(numberOfFollowers == 3) {
-							escaparse();
+							escapeToSafeZone();
 						}
 					}
 				}
@@ -318,24 +318,24 @@ public class AgentHighLevelController extends HighLevelController {
 						//busca a otros agentes y va a la sala mas alejada
 						followMe();
 						if(numberOfFollowers == 3) {
-							fuga();
+							escapeToFarthestZone();
 						}
 					}
 					else{
 						//reune a otros agentes en otra sala
 						followMe();
 						if(numberOfFollowers == 3) {
-							escaparse();
+							escapeToSafeZone();
 						}
 					}
 				}
 			}
 	}
 	
-	void moveRandomly (){
+	void moveRandomly(){
 		if (this.currentTarget == null) {
 		    /* 1 */
-		        /*Random rnd = ThreadLocalRandom.current();
+		        Random rnd = ThreadLocalRandom.current();
 		        Location agentLocation = agent.getLocation();
 		        Floor agentFloor = agentLocation.getFloor();
 		        List<SimRoom> roomsInFloor = agentFloor.getRooms();
@@ -344,10 +344,8 @@ public class AgentHighLevelController extends HighLevelController {
 		        final SimRoom rndRoom = roomsInFloor.get(rndRoomIndex);
 
 		     /* 2 */ 
-		        /*Location randomLocation = rndRoom.getRandomLoc();
-		        this.currentTarget = randomLocation;*/
-			/* 1 */ SimRoom currentRoom = this.agent.getRoom();
-   			/* 2 */ this.currentTarget = currentRoom.getRandomLoc();
+		        Location randomLocation = rndRoom.getRandomLoc();
+		        this.currentTarget = randomLocation;
 		}
 
 		ApproachCallback callback = new ApproachCallback() {
@@ -386,7 +384,7 @@ public class AgentHighLevelController extends HighLevelController {
 		/* 3 */ this.agent.approachTo(this.currentTarget, callback);
 	}
 	
-	private void whatsUp (Location target){
+	private void whatisUp (Location target){
 		
 		ApproachCallback callback = new ApproachCallback() {
 			@Override
@@ -433,7 +431,7 @@ public class AgentHighLevelController extends HighLevelController {
 
 	        	@Override
 	        	public void onSucess(LowLevelAgent agent) {
-	        		followMeUnexperienced(search_range);
+	        		followMeInexpert(search_range);
 	        	}
 
 	        	@Override
@@ -457,7 +455,7 @@ public class AgentHighLevelController extends HighLevelController {
 	    return followTarget;
 	}
 	
-	void follow(LowLevelAgent agent){
+	void iAmFollowing(LowLevelAgent agent){
 		if (isFollowingSomeone() != null) {
 			setState(true);	
 			
@@ -546,9 +544,9 @@ public class AgentHighLevelController extends HighLevelController {
 			}
 			else {
 				if (this.isExperienced()) {
-					ExperiencedBehaviour();
+					ExpertBehaviour();
 				} else {
-					UnexperiencedBehaviour();
+					InexpertBehaviour();
 				}
 			}
 		}

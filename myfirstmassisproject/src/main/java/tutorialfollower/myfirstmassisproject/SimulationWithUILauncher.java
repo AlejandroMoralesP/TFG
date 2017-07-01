@@ -75,7 +75,7 @@ public class SimulationWithUILauncher {
 				new PeopleIDLayer(false),
 				new VisibleAgentsLines(false),
 				new QTLayer(false),
-				new TagGameLayer(true)
+				new DisasterSimulationLayer(true)
 		};
 
 		final GUIState vid = new SimulationWithUI(simState, floorMapLayers);
